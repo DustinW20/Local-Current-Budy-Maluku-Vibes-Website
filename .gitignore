@@ -1,0 +1,7 @@
+# Rahasia: berisi GOOGLE_API_KEY, jangan pernah di-push
+.env
+venv/
+__pycache__/
+.DS_Store
+.claude/
+.vscode/

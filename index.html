@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<!-- Metadata halaman, font, ikon Lucide, stylesheet MapLibre (peta 3D), dan style.css. -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jelajah Ambon & Maluku | Local Smart Travel Companion</title>
+    <meta name="description" content="Temukan pesona laut, rempah, budaya, dan kuliner otentik di Ambon dan wilayah Maluku lainnya. Mulai rencana perjalananmu sekarang!">
+    
+    <!-- Google Fonts: font Outfit untuk seluruh halaman. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ikon Lucide: mengubah <i data-lucide="..."> menjadi ikon SVG (dipanggil lewat refreshIcons di bawah). -->
+    <script src="https://unpkg.com/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navbar: logo, tautan ke tiap section, tombol tema terang/gelap, dan tombol buka chatbot Loku. -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <span class="logo-icon"><i data-lucide="waves"></i></span>
+                <span class="logo-text">Maluku<span class="highlight">Vibes</span></span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#hero" class="active">Beranda</a></li>
+                <li><a href="#destinasi">Destinasi</a></li>
+                <li><a href="#story-map">Story Map</a></li>
+                <li><a href="#event">Event & Budaya</a></li>
+                <li><a href="#itinerary">Smart Itinerary</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" title="Ganti Mode"><i data-lucide="moon"></i></button>
+            <button class="nav-btn-chat" onclick="toggleChat()"><i data-lucide="message-square"></i> Loku</button>
+            <button class="menu-toggle" onclick="toggleMobileMenu()"><i data-lucide="menu"></i></button>
+        </div>
+    </nav>
+
+    <!-- Menu mobile: versi layar kecil dari navbar; tiap tautan menutup menu setelah diklik. -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="#hero" onclick="toggleMobileMenu()">Beranda</a></li>
+            <li><a href="#destinasi" onclick="toggleMobileMenu()">Destinasi</a></li>
+            <li><a href="#story-map" onclick="toggleMobileMenu()">Story Map</a></li>
+            <li><a href="#event" onclick="toggleMobileMenu()">Event & Budaya</a></li>
+            <li><a href="#itinerary" onclick="toggleMobileMenu()">Smart Itinerary</a></li>
+            <li><a href="#" onclick="toggleMobileMenu(); toggleChat();">Loku</a></li>
+            <li style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                <button class="theme-toggle" id="themeToggleMobile" style="background: var(--bg-light); border-radius: 50%; padding: 0.75rem;" title="Ganti Mode"><i data-lucide="moon"></i></button>
+                <span style="font-weight: 600;">Ganti Mode</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Hero: banner pembuka dengan tombol kuis persona dan tautan ke daftar destinasi. -->
+    <header id="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-badge">Smart Travel Companion 🌴</div>
+            <h1>Jelajahi Surga Laut,<br>Rempah & Budaya</h1>
+            <p>Bukan sekadar info wisata. Kami bantu kamu merencanakan trip Maluku yang paling cocok dengan mood, budget, dan gayamu.</p>
+            <div class="hero-actions">
+                <button class="btn-primary" onclick="openPersonaQuiz()"><i data-lucide="sparkles"></i> Cari Tau Persona Trip-mu</button>
+                <a href="#destinasi" class="btn-secondary">Mulai Jelajah</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Peta 3D Ambon: #map3d diisi MapLibre di script.js; di sampingnya info singkat Provinsi Maluku. -->
+    <section id="peta-ambon" class="map3d-wrap">
+        <div class="map3d-frame">
+            <div id="map3d" role="img" aria-label="Peta 3D Pulau Ambon"></div>
+            <div class="map3d-label"><i data-lucide="mountain"></i> Pulau Ambon 3D <span>geser &amp; putar peta untuk menjelajah</span></div>
+        </div>
+        <div class="map3d-info">
+            <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Coat_of_arms_of_Maluku.svg?width=200" alt="Lambang Provinsi Maluku" width="96" height="96" loading="lazy">
+            <div>
+                <h3>Provinsi Maluku</h3>
+                <p>Kepulauan di Indonesia bagian timur, di antara Sulawesi dan Papua. Perairannya dibatasi Laut Banda, Laut Seram, dan Laut Arafura. <strong>Ambon</strong>, di pulau kecil di selatan Pulau Seram, adalah ibu kota provinsi.</p>
+                <ul class="map3d-facts">
+                    <li><b>Ibu kota</b> Kota Ambon</li>
+                    <li><b>Terbentuk</b> 19 Agustus 1945</li>
+                    <li><b>Penduduk</b> 1.848.923 jiwa (Sensus 2020)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <!-- Destinasi: daftar 452 destinasi yang bisa disaring per wilayah, kategori, mood, kata kunci, dan hidden gems. -->
+        <section id="destinasi" class="section-padding">
+            <div class="section-header">
+                <h2>Eksplorasi Wilayah Maluku</h2>
+                <p>Jelajahi keindahan tiap daerah di Maluku: <strong>148 destinasi di Maluku Tengah</strong>, <strong>95 destinasi di Pulau Ambon</strong>, <strong>91 destinasi di Kepulauan Kei</strong>, <strong>78 destinasi di Kepulauan Banda Neira</strong>, dan <strong>37 destinasi di Kota Tual</strong> (Total <strong>452 Destinasi</strong> Terverifikasi).</p>
+            </div>
+
+            <!-- Tab wilayah: data-region dipakai JS untuk menyaring destinasi; angka badge = jumlah destinasi per wilayah. -->
+            <div class="region-tabs-container">
+                <div class="region-tabs" id="regionTabs">
+                    <button class="region-tab active" data-region="Kota Ambon">
+                        <i data-lucide="map-pin"></i>
+                        <span>Pulau Ambon (Kota Ambon)</span>
+                        <span class="region-count" id="badgeAmbonCount">95</span>
+                    </button>
+                    <button class="region-tab" data-region="Maluku Tengah">
+                        <i data-lucide="compass"></i>
+                        <span>Maluku Tengah</span>
+                        <span class="region-count" id="badgeMaltengCount">148</span>
+                    </button>
+                    <button class="region-tab" data-region="Banda">
+                        <i data-lucide="anchor"></i>
+                        <span>Banda Neira</span>
+                        <span class="region-count" id="badgeBandaCount">78</span>
+                    </button>
+                    <button class="region-tab" data-region="Seram">
+                        <i data-lucide="trees"></i>
+                        <span>Pulau Seram</span>
+                        <span class="region-count">3</span>
+                    </button>
+                    <!-- Kepulauan Kei: gabungan Kei Kecil & Kei Besar. -->
+                    <button class="region-tab" data-region="Kei">
+                        <i data-lucide="waves"></i>
+                        <span>Kepulauan Kei</span>
+                        <span class="region-count" id="badgeKeiCount">91</span>
+                    </button>
+                    <!-- Kota Tual: secara administrasi kota sendiri, secara geografis bagian Kep. Kei, jadi ditampilkan sebagai sub-tab. -->
+                    <button class="region-tab region-tab-sub" data-region="Kota Tual">
+                        <i data-lucide="building-2"></i>
+                        <span>Kota Tual <small style="opacity:0.7;font-size:0.7em;">(Kep. Kei)</small></span>
+                        <span class="region-count" id="badgeTualCount">37</span>
+                    </button>
+                    <button class="region-tab" data-region="all">
+                        <i data-lucide="globe"></i>
+                        <span>Semua Wilayah</span>
+                        <span class="region-count" id="badgeAllCount">452</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter kategori: data-type dicocokkan dengan kategori destinasi. -->
+            <div class="category-subnav" id="categorySubnav">
+                <button class="subnav-pill active" data-type="all">✨ Semua Kategori</button>
+                <button class="subnav-pill" data-type="Bahari">🏖️ Bahari & Pantai</button>
+                <button class="subnav-pill" data-type="Alam">⛰️ Alam & Air Terjun</button>
+                <button class="subnav-pill" data-type="Sejarah">🏰 Wisata Sejarah</button>
+                <button class="subnav-pill" data-type="Budaya">🎭 Budaya & Tradisi</button>
+                <button class="subnav-pill" data-type="Kuliner">🍜 Kulineran</button>
+            </div>
+            
+            <!-- Filter mood: data-mood dicocokkan dengan tag mood destinasi (juga diatur otomatis oleh hasil kuis persona). -->
+            <div class="mood-planner" id="moodTags">
+                <button class="mood-tag active" data-mood="all">🌟 Semua Mood</button>
+                <button class="mood-tag" data-mood="healing santai">🌿 Healing Santai</button>
+                <button class="mood-tag" data-mood="foto-foto aesthetic">📸 Foto Aesthetic</button>
+                <button class="mood-tag" data-mood="wisata sejarah">🏰 Napak Tilas</button>
+                <button class="mood-tag" data-mood="kulineran">🍜 Kulineran</button>
+                <button class="mood-tag" data-mood="adventure">⛰️ Adventure</button>
+                <button class="mood-tag" data-mood="liburan keluarga">👨‍👩‍👧‍👦 Liburan Keluarga</button>
+            </div>
+
+            <!-- Filter lanjutan: pencarian teks dan dropdown wilayah (selaras dengan tab wilayah di atas). -->
+            <div class="filters">
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="searchInput" placeholder="Cari nama tempat, kecamatan, batu, pantai, benteng, dll...">
+                </div>
+                <div class="filter-group">
+                    <select id="regionFilter">
+                        <option value="Kota Ambon">Wilayah: Pulau Ambon (95)</option>
+                        <option value="Maluku Tengah">Wilayah: Maluku Tengah (148)</option>
+                        <option value="all">Semua Wilayah Maluku (452)</option>
+                        <option value="Banda">Kepulauan Banda Neira (78)</option>
+                        <option value="Kei">Kepulauan Kei (91)</option>
+                        <option value="Kota Tual">Kota Tual (37)</option>
+                        <option value="Seram">Pulau Seram</option>
+                    </select>
+                </div>
+                <!-- Hidden gems: jika aktif, hanya tampilkan destinasi yang jarang dikunjungi. -->
+                <div class="hidden-gems-toggle">
+                    <span>💎 Anti Mainstream (Hidden Gems)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="hiddenGemsToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Penghitung: jumlah destinasi yang tampil vs total hasil filter, diperbarui JS. -->
+            <div class="dest-counter-bar" id="destCounterBar">
+                <div id="destCounterText">Menampilkan <strong id="currentVisibleCount">18</strong> dari <strong id="totalVisibleCount">95</strong> destinasi di <span id="currentRegionLabel" style="font-weight: 600; color: var(--text-main);">Pulau Ambon (Kota Ambon)</span></div>
+                <div id="activeFilterBadge" style="font-size: 0.8rem; opacity: 0.8;"></div>
+            </div>
+
+            <div class="grid-container" id="destinasiGrid">
+                <!-- Kartu destinasi dibuat oleh script.js dari data destinations.js; klik kartu membuka #destModal. -->
+            </div>
+
+            <!-- Paginasi: tampilkan sebagian kartu dulu, lalu "Muat Lebih Banyak" atau "Tampilkan Semua". -->
+            <div class="load-more-container" id="loadMoreContainer">
+                <button class="btn-primary" id="loadMoreBtn" onclick="loadMoreDestinations()"><i data-lucide="chevron-down"></i> Muat Lebih Banyak</button>
+                <button class="btn-outline" id="showAllBtn" onclick="showAllDestinations()">Tampilkan Semua (<span id="totalBadgeCount">95</span>)</button>
+            </div>
+        </section>
+
+        <!-- Story Map: kartu wilayah berisi cerita sejarah & budaya; klik kartu menampilkan #storyDetailBox. -->
+        <section id="story-map" class="section-padding bg-light">
+            <div class="section-header">
+                <h2>Jejak Maluku: Storytelling Map</h2>
+                <p>Setiap pulau punya cerita. Klik wilayah di bawah ini untuk menyelami sejarah rempah, budaya, dan pesona lautnya.</p>
+            </div>
+            
+            <div class="story-map-container" id="storyMapContainer">
+                <!-- Kartu wilayah diisi oleh script.js. -->
+            </div>
+            
+            <div class="story-detail-box" id="storyDetailBox" style="display:none;">
+                <h3 id="storyRegionTitle">Nama Wilayah</h3>
+                <p id="storyRegionDesc">Deskripsi cerita region...</p>
+                <div class="story-highlights" id="storyHighlights">
+                    <!-- Badge sorotan wilayah terpilih, diisi oleh script.js. -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Radar: daftar festival/acara Maluku dengan filter kategori; klik kartu membuka #eventModal. -->
+        <section id="event" class="section-padding bg-gradient">
+            <div class="section-header">
+                <h2>Event Radar</h2>
+                <p>Temukan kemeriahan Maluku dari festival budaya, musik, hingga UMKM.</p>
+            </div>
+            
+            <div class="month-filters" id="categoryFilters">
+                <!-- Tombol filter kategori event diisi oleh script.js. -->
+            </div>
+
+            <div class="grid-container" id="eventGrid">
+                <!-- Kartu event diisi oleh script.js. -->
+            </div>
+        </section>
+
+        <!-- Kamus Gaul Maluku: kartu kosakata bahasa Ambon beserta artinya. -->
+        <section id="phrase-guide" class="section-padding bg-gradient">
+            <div class="section-header">
+                <h2>Kamus Gaul Maluku</h2>
+                <p>Biar liburan makin seru dan akrab sama warga lokal, yuk pelajari beberapa kata ini!</p>
+            </div>
+            
+            <div class="phrase-grid" id="phraseGrid">
+                <!-- Kartu frasa diisi oleh script.js. -->
+            </div>
+        </section>
+
+        <!-- Kuliner: slider makanan khas Maluku. -->
+        <section id="kuliner" class="section-padding">
+            <div class="section-header">
+                <h2>Cita Rasa Otentik</h2>
+                <p>Manjakan lidah dengan bumbu rempah dan kesegaran hasil laut Maluku.</p>
+            </div>
+            
+            <div class="food-slider" id="foodContainer">
+                <!-- Kartu makanan diisi oleh script.js. -->
+            </div>
+        </section>
+
+        <!-- Smart Itinerary: pilih durasi, gaya, dan budget; saat submit JS menyusun rencana perjalanan per hari. -->
+        <section id="itinerary" class="section-padding bg-light">
+            <div class="itinerary-wrapper">
+                <div class="itinerary-content">
+                    <h2>Smart Itinerary Generator</h2>
+                    <p>Beri tahu kami durasi, gaya, dan budgetmu. Sistem akan membuatkan rute cerdas secara otomatis!</p>
+                    
+                    <form id="itineraryForm" class="itinerary-form">
+                        <div class="form-group">
+                            <label>Durasi Liburan</label>
+                            <div class="radio-group" id="durationGroup">
+                                <label class="radio-btn active"><input type="radio" name="duration" value="1" checked> 1 Hari</label>
+                                <label class="radio-btn"><input type="radio" name="duration" value="2"> 2 Hari</label>
+                                <label class="radio-btn"><input type="radio" name="duration" value="3"> 3 Hari</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Gaya Liburan Utama</label>
+                            <div class="radio-group wrap" id="styleGroup">
+                                <label class="radio-btn active"><input type="radio" name="style" value="Santai" checked> Santai</label>
+                                <label class="radio-btn"><input type="radio" name="style" value="Foto-foto"> Foto-foto</label>
+                                <label class="radio-btn"><input type="radio" name="style" value="Sejarah"> Sejarah</label>
+                                <label class="radio-btn"><input type="radio" name="style" value="Bahari"> Bahari</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Pilihan Budget</label>
+                            <div class="radio-group wrap" id="budgetGroup">
+                                <label class="radio-btn active"><input type="radio" name="budget" value="Hemat" checked> Hemat</label>
+                                <label class="radio-btn"><input type="radio" name="budget" value="Backpacker"> Backpacker</label>
+                                <label class="radio-btn"><input type="radio" name="budget" value="Nyaman"> Nyaman</label>
+                                <label class="radio-btn"><input type="radio" name="budget" value="Keluarga"> Keluarga</label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary full-width">Buat Smart Itinerary <i data-lucide="map"></i></button>
+                        <p class="note-text">*Estimasi harga dan rute bisa berubah sesuai update dataset terbaru.</p>
+                    </form>
+                </div>
+                
+                <div class="itinerary-result" id="itineraryResult" style="display: none;">
+                    <!-- Hasil itinerary ditampilkan di sini oleh script.js setelah form dikirim. -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+        <!-- Kontak Pembuat: profil pembuat, dosen pembimbing, tautan sosial media, dan form pesan singkat. -->
+        <section id="creator" class="section-padding" style="background: var(--bg-overlay); border-top: 1px solid var(--border-color);">
+            <div class="section-header">
+                <h2>Kontak Pembuat</h2>
+                <p>Kenali pengembang di balik platform promosi pariwisata Ambon & Maluku ini.</p>
+            </div>
+            
+            <div class="grid-container" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: stretch;">
+                <!-- Kartu profil pembuat dan dosen pembimbing. -->
+                <div class="card creator-card" style="text-align: center; padding: 2rem;">
+                    <img src="images/profil/dustin-welliken.jpeg" alt="Dustin Welliken" class="creator-profile-img" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.5rem auto; box-shadow: var(--shadow-md); border: 3px solid var(--primary);">
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Dustin Welliken</h3>
+                    <p style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">Mahasiswa Universitas Tarumanagara</p>
+                    <p style="margin-bottom: 1rem;">NIM: 535220157</p>
+                    <p class="card-desc" style="margin-bottom: 2rem;">Pembuat website promosi wisata Ambon dan Maluku yang dikembangkan untuk mendukung promosi destinasi lokal, event daerah, budaya, kuliner, dan kebutuhan penelitian akademik.</p>
+
+                    <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; font-size: 0.9rem;">
+                        <div>
+                            <img src="images/profil/viny-christanti.jpg" alt="Viny Christanti Mawardi" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem;">
+                            <p><strong>Dosen Pembimbing Utama</strong><br>Viny Christanti Mawardi</p>
+                        </div>
+                        <div>
+                            <img src="images/profil/daniel-jahja.jpg" alt="Daniel Jahja Surjawan" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem;">
+                            <p><strong>Dosen Pembimbing Kedua</strong><br>Daniel Jahja Surjawan</p>
+                        </div>
+                    </div>
+
+                    <div class="social-links" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <a href="https://linkedin.com/in/dustinwelliken" target="_blank" class="social-btn"><i data-lucide="linkedin"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="globe"></i></a>
+                    </div>
+                </div>
+
+                <!-- Form pesan: handleContactSubmit mengirim pesan ke email pembuat lewat FormSubmit. -->
+                <div class="card" style="padding: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem;">Kirim Pesan Cepat</h3>
+                    <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                        <div class="form-group">
+                            <label for="contactName">Nama</label>
+                            <input type="text" id="contactName" class="form-input" placeholder="Masukkan nama kamu" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-main); color: var(--text-main); font-family: inherit;">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactContact">Email / Sosial Media</label>
+                            <input type="text" id="contactContact" class="form-input" placeholder="Cara Dustin membalasmu" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-main); color: var(--text-main); font-family: inherit;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="contactMessage">Pesan</label>
+                            <textarea id="contactMessage" class="form-input" rows="4" placeholder="Apa yang ingin didiskusikan?" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-main); color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary full-width">Kirim Pesan <i data-lucide="send"></i></button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem;">
+            <!-- Footer kolom 1: deskripsi singkat website. -->
+            <div class="footer-col">
+                <div class="logo" style="margin-bottom: 1rem;">
+                    <span class="logo-icon"><i data-lucide="waves"></i></span>
+                    <span class="logo-text" style="color: #f8fafc;">Maluku<span class="highlight">Vibes</span></span>
+                </div>
+                <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">Platform media promosi wisata Ambon dan Maluku berbasis destinasi, kuliner, event, budaya, dan dilengkapi chatbot cerdas lokal "Loku".</p>
+            </div>
+
+            <!-- Footer kolom 2: tautan cepat ke section utama. -->
+            <div class="footer-links">
+                <h4>Navigasi Cepat</h4>
+                <ul>
+                    <li><a href="#destinasi">Destinasi & Story Map</a></li>
+                    <li><a href="#event">Event & Kuliner</a></li>
+                    <li><a href="#itinerary">Rencana Trip</a></li>
+                    <li><a href="#" onclick="toggleChat()">Loku</a></li>
+                    <li><a href="#creator">Kontak Pembuat</a></li>
+                </ul>
+            </div>
+
+            <!-- Footer kolom 3: kontak pembuat. -->
+            <div class="footer-links">
+                <h4>Kontak Pembuat</h4>
+                <ul style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">
+                    <li style="color: #f8fafc; font-weight: 600; margin-bottom: 0.5rem;">Dustin Welliken</li>
+                    <li style="margin-top: 0.5rem;">
+                        <a href="https://linkedin.com/in/dustinwelliken" target="_blank"><i data-lucide="linkedin" style="width:18px;"></i></a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Footer kolom 4: catatan bahwa data bisa berubah. -->
+            <div class="footer-col">
+                <h4 style="color: #f8fafc; margin-bottom: 1.5rem;">Catatan Data</h4>
+                <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;"><i data-lucide="info" style="width:14px; margin-right:4px;"></i> Data destinasi, event, harga, jadwal, dan akses dapat diperbarui kapan saja mengikuti perubahan dataset terbaru di lapangan.</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>Designed & Developed by <strong>Dustin Welliken</strong> for Ambon & Maluku Tourism Promotion.</p>
+        </div>
+    </footer>
+
+    <!-- Modal & overlay: tersembunyi secara default, dibuka/ditutup oleh fungsi di script.js. -->
+    
+    <!-- Kuis persona: 3 pertanyaan menentukan tipe traveler, lalu "Lihat Rekomendasiku" menerapkan filter mood yang cocok. -->
+    <div class="modal-overlay" id="quizModal">
+        <div class="modal-content quiz-content">
+            <button class="close-modal" onclick="closeQuizModal()"><i data-lucide="x"></i></button>
+            <div id="quizBody">
+                <h2 style="margin-bottom:1rem; color:var(--primary);">Travel Persona Quiz</h2>
+                <p id="quizQuestionText" style="margin-bottom:2rem; font-size:1.1rem; font-weight:500;">Pertanyaan 1 dari 3...</p>
+                <div id="quizOptions" class="quiz-options">
+                    <!-- Pilihan jawaban tiap pertanyaan diisi oleh script.js. -->
+                </div>
+            </div>
+            <div id="quizResult" style="display:none; text-align:center;">
+                <div class="persona-icon" id="personaIcon">🏖️</div>
+                <h2 id="personaTitle" style="color:var(--primary); margin-bottom:0.5rem;">Si Anak Healing</h2>
+                <p id="personaDesc" style="margin-bottom:2rem;">Kamu suka ketenangan, pantai sepi, dan menjauh dari hiruk pikuk kota.</p>
+                <button class="btn-primary" onclick="applyPersonaAndClose()">Lihat Rekomendasiku</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail destinasi: gambar, wilayah, kategori, deskripsi, dan tips lokal dari destinasi yang diklik. -->
+    <div class="modal-overlay" id="destModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()"><i data-lucide="x"></i></button>
+            <img src="" alt="" id="modalImg" class="modal-img">
+            <div class="modal-body">
+                <div class="modal-tags">
+                    <span class="tag" id="modalRegion"></span>
+                    <span class="tag tag-outline" id="modalCategory"></span>
+                    <span class="tag hidden-gem-tag" id="modalHiddenGem" style="display:none;">💎 Hidden Gem</span>
+                </div>
+                <h2 id="modalTitle"></h2>
+                <p id="modalDesc"></p>
+                <div class="modal-tips">
+                    <h4><i data-lucide="lightbulb"></i> Tips Lokal:</h4>
+                    <p id="modalTips"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail event: tanggal, lokasi, deskripsi, target pengunjung; label "Jadwal dapat berubah" untuk jadwal tentatif. -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeEventModal()"><i data-lucide="x"></i></button>
+            <img src="" alt="" id="eventModalImg" class="modal-img">
+            <div class="modal-body">
+                <div class="modal-tags">
+                    <span class="tag" id="eventModalCategory"></span>
+                    <span class="tag tag-outline" id="eventModalDate"><i data-lucide="calendar" style="width:14px;"></i> <span></span></span>
+                    <span class="tag-tentative" id="eventModalTentative" style="display:none;"><i data-lucide="alert-circle" style="width:14px;"></i> Jadwal dapat berubah</span>
+                </div>
+                <h2 id="eventModalTitle" style="margin-top:0.5rem;"></h2>
+                <p id="eventModalLocation" style="color:var(--primary); font-weight:600; margin-bottom:1rem;"><i data-lucide="map-pin" style="width:16px;"></i> <span></span></p>
+                <p id="eventModalDesc"></p>
+                
+                <div style="margin-top:1.5rem; display:flex; align-items:center; gap:0.5rem; padding:0.75rem; background:var(--bg-light); border-radius:var(--radius-md);">
+                    <i data-lucide="users" style="color:var(--text-muted);"></i>
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Target Pengunjung</div>
+                        <div id="eventModalTarget" style="font-weight:500;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Loku: mengirim pertanyaan ke server.py (localhost:8000/chat); jika server mati, memakai jawaban bot lokal di script.js. -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <div class="chat-title">
+                <div class="avatar">LV</div>
+                <div>
+                    <h3>Loku</h3>
+                    <span class="status">Local Travel Buddy</span>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button onclick="resetChat()" title="Reset Obrolan"><i data-lucide="rotate-ccw"></i></button>
+                <button onclick="toggleChat()"><i data-lucide="chevron-down"></i></button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Riwayat obrolan ditambahkan oleh script.js. -->
+        </div>
+        <div class="chat-quick-prompts" id="quickPrompts">
+            <button onclick="sendQuickPrompt('Spill tempat healing yg aesthetic')">Tempat aesthetic</button>
+            <button onclick="sendQuickPrompt('Kuliner wajib dicoba?')">Kuliner wajib</button>
+            <button onclick="sendQuickPrompt('Cari hidden gems dmn?')">Cari hidden gems</button>
+        </div>
+        <form class="chat-input-area" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Ketik pertanyaanmu di sini..." autocomplete="off">
+            <button type="submit" id="sendBtn"><i data-lucide="send"></i></button>
+        </form>
+    </div>
+
+    <!-- Tombol chat mengambang: membuka/menutup widget Loku. -->
+    <button class="floating-chat-btn" id="floatingChatBtn" onclick="toggleChat()">
+        <i data-lucide="message-square"></i>
+        <span class="badge">1</span>
+    </button>
+
+    <!-- Skrip: MapLibre (peta 3D), data destinasi, lalu logika halaman (urutan penting: data dulu). -->
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script src="destinations.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Initialize icons, with local fallback when the CDN is unavailable.
+        if (window.refreshIcons) refreshIcons();
+    </script>
+</body>
+</html>
