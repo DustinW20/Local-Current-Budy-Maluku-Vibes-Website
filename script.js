@@ -1400,7 +1400,7 @@ window.handleContactSubmit = async (e) => {
     const btn = form.querySelector('button[type="submit"]');
     btn.disabled = true;
     try {
-        const res = await fetch('https://formsubmit.co/ajax/dustinwellikken3@gmail.com', {
+        const res = await fetch('https://formsubmit.co/ajax/a8b47e9148212e9011ab4da05aa8a2f1', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({
@@ -1417,7 +1417,8 @@ window.handleContactSubmit = async (e) => {
         alert("Dangke! Pesan kamu sudah terkirim. Dustin akan menghubungi kamu lewat kontak yang diberikan.");
         form.reset();
     } catch (err) {
-        alert("Maaf, pesan gagal terkirim. Coba lagi sebentar ya.");
+        console.error('FormSubmit:', err);
+        alert(`Maaf, pesan gagal terkirim. Coba lagi sebentar ya.\n(${err.message})`);
     } finally {
         btn.disabled = false;
     }
