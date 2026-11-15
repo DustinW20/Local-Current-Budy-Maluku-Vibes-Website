@@ -2,7 +2,7 @@ fastapi
 uvicorn
 python-dotenv
 google-genai
-scikit-learn
+scikit-learn==1.6.1  # harus sama dengan versi pembuat database_wisata_ambon.pkl
 numpy
 pandas
 openpyxl

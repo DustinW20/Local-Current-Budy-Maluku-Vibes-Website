@@ -1300,7 +1300,9 @@ if (chatForm) {
                 // Panggil FastAPI backend
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 180000); // Gemini bisa 60-130 detik
-                const res = await fetch('http://localhost:8000/chat', {
+                // Dibuka lewat server lokal lain (port 5500/file): server chat ada di localhost:8000; selain itu server yang sama.
+                const lokal = ['localhost', '127.0.0.1', ''].includes(location.hostname) && location.port !== '8000';
+                const res = await fetch(lokal ? 'http://localhost:8000/chat' : '/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text }),

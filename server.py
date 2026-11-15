@@ -4,7 +4,9 @@ import re
 import time
 import numpy as np
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 from pydantic import BaseModel
@@ -124,3 +126,14 @@ def chat(body: ChatRequest):
         if getattr(e, "code", None) == 429:  # RESOURCE_EXHAUSTED: kuota per menit/harian Gemini habis
             return {"answer": LIMIT, "source": "limit", "score": float(skor[i])}
         return {"answer": MAAF, "source": "maaf", "score": float(skor[i])}
+
+# Website ikut disajikan server ini (satu link saat deploy); hanya file tampilan, bukan .env/.py/.pkl.
+WEB = {"index.html", "script.js", "style.css", "destinations.js"}
+app.mount("/images", StaticFiles(directory="images"), name="images")
+
+@app.get("/")
+@app.get("/{nama}")
+def halaman(nama: str = "index.html"):
+    if nama not in WEB:
+        raise HTTPException(404)
+    return FileResponse(nama)
