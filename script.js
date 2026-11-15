@@ -1273,6 +1273,36 @@ function addBotResponse(response) {
     addMessage(response.answer, 'bot', response.suggestions || []);
 }
 
+// Dijalankan sebagai komponen Streamlit (streamlit_app.py): pertanyaan dikirim ke Python lewat postMessage, bukan fetch.
+const diStreamlit = new URLSearchParams(location.search).has('streamlitUrl');
+const tungguJawaban = {};
+const kirimKeStreamlit = (type, data) => window.parent.postMessage({ isStreamlitMessage: true, type, ...data }, '*');
+if (diStreamlit) {
+    window.addEventListener('message', (e) => {
+        const j = e.data?.type === 'streamlit:render' && e.data.args?.jawaban;
+        if (j && tungguJawaban[j.id]) { tungguJawaban[j.id](j); delete tungguJawaban[j.id]; }
+    });
+    kirimKeStreamlit('streamlit:componentReady', { apiVersion: 1 });
+    // Tinggi iframe = tinggi layar, supaya navbar & tombol Loku (position: fixed) tetap di tempatnya.
+    const aturTinggi = () => {
+        let h = 800;
+        try { h = window.parent.innerHeight; } catch (err) { /* beda origin: pakai 800 */ }
+        kirimKeStreamlit('streamlit:setFrameHeight', { height: h });
+    };
+    aturTinggi();
+    try { window.parent.addEventListener('resize', aturTinggi); } catch (err) { /* beda origin */ }
+}
+function tanyaStreamlit(message) {
+    const id = Date.now() + Math.random();
+    return Promise.race([
+        new Promise((ok) => {
+            tungguJawaban[id] = ok;
+            kirimKeStreamlit('streamlit:setComponentValue', { value: { id, message }, dataType: 'json' });
+        }),
+        new Promise((_, gagal) => setTimeout(() => gagal(new Error('timeout')), 180000)),
+    ]);
+}
+
 // Kirim pesan chat: tanya server Python (localhost:8000/chat); bila gagal/offline pakai chatbot lokal.
 const chatForm = document.getElementById('chatForm');
 if (chatForm) {
@@ -1297,6 +1327,12 @@ if (chatForm) {
             }
 
             try {
+                if (diStreamlit) {
+                    const data = await tanyaStreamlit(text);
+                    document.getElementById('botLoadingTemp')?.remove();
+                    addMessage(data.answer, 'bot');
+                    return;
+                }
                 // Panggil FastAPI backend
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 180000); // Gemini bisa 60-130 detik
