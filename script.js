@@ -1278,6 +1278,13 @@ const diStreamlit = new URLSearchParams(location.search).has('streamlitUrl');
 const tungguJawaban = {};
 const kirimKeStreamlit = (type, data) => window.parent.postMessage({ isStreamlitMessage: true, type, ...data }, '*');
 if (diStreamlit) {
+    // Streamlit memasang scrolling="no" pada iframe sehingga halaman tak bisa digulir; ubah lalu muat ulang sekali agar berlaku.
+    try {
+        if (window.frameElement?.getAttribute('scrolling') === 'no') {
+            window.frameElement.setAttribute('scrolling', 'yes');
+            location.reload();
+        }
+    } catch (err) { /* beda origin: biarkan */ }
     window.addEventListener('message', (e) => {
         const j = e.data?.type === 'streamlit:render' && e.data.args?.jawaban;
         if (j && tungguJawaban[j.id]) { tungguJawaban[j.id](j); delete tungguJawaban[j.id]; }
