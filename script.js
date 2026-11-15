@@ -1408,13 +1408,13 @@ window.handleContactSubmit = async (e) => {
                 _template: 'table',
                 _captcha: 'false',
                 Nama: form.contactName.value,
-                Kontak: form.contactContact.value,
+                email: form.contactContact.value, // FormSubmit memakai field 'email' sebagai alamat balasan
                 Pesan: form.contactMessage.value
             })
         });
         const data = await res.json();
         if (!res.ok || String(data.success) !== 'true') throw new Error(data.message || 'Gagal mengirim');
-        alert("Dangke! Pesan kamu sudah terkirim. Dustin akan menghubungi kamu lewat kontak yang diberikan.");
+        alert("Dangke! Pesan kamu sudah terkirim. Dustin akan membalas lewat email yang kamu berikan.");
         form.reset();
     } catch (err) {
         console.error('FormSubmit:', err);
